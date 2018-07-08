@@ -4,10 +4,7 @@ import argparse
 import numpy as np 
 import json
 import time
-
-import sys
-sys.path.insert(0, "/home/mital/RNN/coco/PythonAPI/")
-
+ 
 
 import torch
 import torch.nn as nn
@@ -24,8 +21,9 @@ from torchvision import models
 from coco_loader import coco_loader
 from convcap import convcap
 from vggfeats import Vgg16Feats
+from resnetfeats import ResNetFeats
 from tqdm import tqdm 
-from test import test
+from test import test 
 
 def repeat_img_per_cap(imgsfeats, imgsfc7, ncap_per_img):
   """Repeat image features ncap_per_img times"""
@@ -51,60 +49,22 @@ def train(args):
 
   t_start = time.time()
   train_data = coco_loader(args.coco_root, split='train', ncap_per_img=args.ncap_per_img)
-
-
   print('[DEBUG] Loading train data ... %f secs' % (time.time() - t_start))
 
   train_data_loader = DataLoader(dataset=train_data, num_workers=args.nthreads,\
     batch_size=args.batchsize, shuffle=True, drop_last=True)
 
-  print('Type:', train_data_loader)
-
-  #load if fine_tuning is true
-
-  if (args.fine_tune):
-    checkpoint = torch.load(args.fine_tune)
-
-    # torch.save({
-    #     'epoch': epoch,
-    #     'state_dict': model_convcap.state_dict(),
-    #     'img_state_dict': model_imgcnn.state_dict(),
-    #     'optimizer' : optimizer.state_dict(),
-    #     'img_optimizer' : img_optimizer_dict,
-    #   }, modelfn)
-
-  #Load pre-trained imgcnn  
-  model_imgcnn = Vgg16Feats()  
-
-  # in case finetune
-  if (args.fine_tune):
-    model_imgcnn.load_state_dict(checkpoint['img_state_dict'])
-    print('Encoder weights loaded')
-
+  #Load pre-trained imgcnn
+  model_imgcnn = ResNetFeats()  
   model_imgcnn.cuda() 
   model_imgcnn.train(True) 
 
   #Convcap model
   model_convcap = convcap(train_data.numwords, args.num_layers, is_attention=args.attention)
-  # in case finetune
-  if (args.fine_tune):
-    model_convcap.load_state_dict(checkpoint['state_dict'])
-    print('Convcap weights loaded')
-
   model_convcap.cuda()
   model_convcap.train(True)
 
-
-  if (args.optim_alg == 'RMSprop'):
-    optimizer = optim.RMSprop(model_convcap.parameters(), lr=args.learning_rate)
-  else:
-    optimizer = optim.Adam(model_convcap.parameters(), lr=args.learning_rate)
-
-  # in case finetune
-  if (args.fine_tune):
-    optimizer.load_state_dict(checkpoint['optimizer'])
-    print('Optimizer loaded')
-
+  optimizer = optim.RMSprop(model_convcap.parameters(), lr=args.learning_rate)
   scheduler = lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=.1)
   img_optimizer = None
 
@@ -115,38 +75,16 @@ def train(args):
   nbatches = np.int_(np.floor((len(train_data.ids)*1.)/batchsize)) 
   bestscore = .0
 
-  epoch = 0
-  # in case finetune
-  if (args.fine_tune):
-    epoch = checkpoint['epoch']
-    print('Epoch loaded:', epoch)
-
-
-  while epoch <= args.epochs:
-    epoch = epoch + 1
+  for epoch in range(args.epochs):
     loss_train = 0.
     
-    print('Epoch#', epoch)
-
-
-    if(epoch >= args.finetune_after):
-      if (args.optim_alg == 'RMSprop'):
-        img_optimizer = optim.RMSprop(model_imgcnn.parameters(), lr=1e-5)
-      else:
-        img_optimizer = optim.Adam(model_imgcnn.parameters(), lr=1e-5)
-      # in case finetune
-      if (args.fine_tune):
-        img_optimizer.load_state_dict(checkpoint['img_optimizer'])
-        print('[DEBUG] img_optimizer loaded')
-
+    if(epoch == args.finetune_after):
+      img_optimizer = optim.RMSprop(model_imgcnn.parameters(), lr=1e-5)
       img_scheduler = lr_scheduler.StepLR(img_optimizer, step_size=args.lr_step_size, gamma=.1)
 
     scheduler.step()    
     if(img_optimizer):
       img_scheduler.step()
-
-    # set to None in order to stop loading the img_optimizer
-    args.fine_tune = None
 
     #One epoch of train
     for batch_idx, (imgs, captions, wordclass, mask, _) in \
@@ -195,9 +133,6 @@ def train(args):
           wordclass_t[maskids, ...].contiguous().view(maskids.shape[0]))
 
       loss_train = loss_train + loss.data[0]
-
-      if (batch_idx % 5 == 0):
-        print('LOSS:', loss)
 
       loss.backward()
 
