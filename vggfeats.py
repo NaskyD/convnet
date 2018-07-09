@@ -8,7 +8,7 @@ pretrained_model = models.vgg16(pretrained=True)
 class Vgg16Feats(nn.Module):
   def __init__(self):
     super(Vgg16Feats, self).__init__()
-    self.features_nopool = nn.Sequential(*list(pretrained_model.features.children)[:-1])
+    self.features_nopool = nn.Sequential(*list(pretrained_model.features.children())[:-1])
     self.features_pool = list(pretrained_model.features.children())[-1]
     self.classifier = nn.Sequential(*list(pretrained_model.classifier.children())[:-1]) 
 
