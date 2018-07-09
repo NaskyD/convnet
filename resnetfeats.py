@@ -14,6 +14,7 @@ class Resnet101Feats(nn.Module):
     self.classifier = nn.Sequential(list(pretrained_model.modules())[-1]) # add one extra fc layer?
 
   def forward(self, x):
+    print("x dimensions: " + str(x.dim()))
     x = self.features_nopool(x)
     x_pool = self.features_pool(x)
     x_feat = x_pool.view(x_pool.size(0), -1) #
