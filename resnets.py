@@ -108,6 +108,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
+        #self.fc_features = nn.Linear(512* block.expansion, 4096)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -147,11 +148,11 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         print("##################### size is ")
         print(x.shape)
-        features = x
         x = x.view(x.size(0), -1)
+        #features = self.fc_features(x)
         x = self.fc(x)
 
-        return x, features
+        return x#, features
 
 def resnet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.

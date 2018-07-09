@@ -21,7 +21,7 @@ from torchvision import models
 from coco_loader import coco_loader
 from convcap import convcap
 from vggfeats import Vgg16Feats
-from resnetfeats import resnet101
+from resnets import resnet101
 from tqdm import tqdm 
 from test import test 
 

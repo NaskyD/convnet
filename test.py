@@ -20,7 +20,7 @@ from coco_loader import coco_loader
 from torchvision import models                                                                     
 from convcap import convcap
 from vggfeats import Vgg16Feats
-from resnetfeats import resnet101
+from resnets import resnet101
 from evaluate import language_eval
 
 
