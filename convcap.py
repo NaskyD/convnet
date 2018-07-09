@@ -122,6 +122,8 @@ class convcap(nn.Module):
       if(self.is_attention):
         attn = self.attention[i]
         x = x.transpose(2, 1)
+        print("x transposed: ")
+        print(x.size())
         x, attn_buffer = attn(x, wordemb, imgsfeats)
         x = x.transpose(2, 1)
     
