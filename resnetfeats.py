@@ -19,6 +19,8 @@ class Resnet101Feats(nn.Module):
     print(x.size())
     x = self.features_nopool(x)
     x_pool = self.features_pool(x)
+    print("x_pool size: ")
+    print(x_pool.size())
     x_feat = x_pool.view(x_pool.size(0), -1) #
     print("x_feat size: ")
     print(x_feat.size())
