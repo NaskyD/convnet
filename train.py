@@ -101,6 +101,8 @@ def train(args):
       if(img_optimizer):
         img_optimizer.zero_grad() 
 
+      print("imgs_v stats: ")
+      print(imgs_v.size())
       imgsfeats, imgsfc7 = model_imgcnn(imgs_v)
       imgsfeats, imgsfc7 = repeat_img_per_cap(imgsfeats, imgsfc7, ncap_per_img)
       _, _, feat_h, feat_w = imgsfeats.size()
