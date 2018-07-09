@@ -11,7 +11,7 @@ class Resnet101Feats(nn.Module):
     super(Resnet101Feats, self).__init__()
     self.features_nopool = nn.Sequential(*list(pretrained_model.modules())[:-2])
     self.features_pool = list(pretrained_model.modules())[-2]
-    self.classifier = nn.Sequential(*list(pretrained_model.modules())[-1]) # add one extra fc layer?
+    self.classifier = nn.Sequential(list(pretrained_model.modules())[-1]) # add one extra fc layer?
 
   def forward(self, x):
     x = self.features_nopool(x)
