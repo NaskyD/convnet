@@ -131,7 +131,9 @@ def train(args):
       else:
         loss = F.cross_entropy(wordact_t[maskids, ...], \
           wordclass_t[maskids, ...].contiguous().view(maskids.shape[0]))
-
+      
+      print("#### EXIT POINT ####")
+      exit()
       loss_train = loss_train + loss.data[0]
 
       loss.backward()
