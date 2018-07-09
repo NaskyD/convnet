@@ -55,7 +55,7 @@ def train(args):
     batch_size=args.batchsize, shuffle=True, drop_last=True)
 
   #Load pre-trained imgcnn
-  model_imgcnn = Resnet101Feats(pretrained=True)  
+  model_imgcnn = Resnet101Feats()  
   model_imgcnn.cuda() 
   model_imgcnn.train(True) 
 
