@@ -107,7 +107,9 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1) #(2, stride=2)
-        self.fc_extra = nn.Linear(512 * block.expansion, 512)
+        self.maxpool = nn.MaxPool2d(2, stride=2)
+        self.maxpool2 = nn.MaxPool2d(2, stride=2)
+        #self.fc_extra = nn.Linear(512 * block.expansion, 512)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
         #self.fc_features = nn.Linear(512* block.expansion, 4096)
 
@@ -147,11 +149,13 @@ class ResNet(nn.Module):
         x = self.layer4(x)
 
         x = self.avgpool(x)
+        y = self.maxpool(x)
+        y = self.maxpool2(y)
         #print("##################### size is ")
         #print(x.shape)
         x = x.view(x.size(0), -1)
         #features = self.fc_features(x)
-        y = fc_extra(x)
+        #y = fc_extra(x)
         x = self.fc(x)
 
         return x, y#, features
